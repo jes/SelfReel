@@ -9,6 +9,7 @@ import android.hardware.Camera;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.Handler;
 import android.util.Log;
 import android.view.Display;
 import android.view.Menu;
@@ -62,8 +63,50 @@ public class SelfReel extends Activity {
     /** A basic Camera preview class */
     class CameraPreview extends SurfaceView implements SurfaceHolder.Callback {
         private SurfaceHolder mHolder;
-        private Camera mCamera;
+        private Camera mCamera = null;
         private static final double ASPECT_RATIO = 3.0 / 4.0;
+
+        long startms = 0;
+        long lastms = 0;
+
+        Handler timerHandler = new Handler();
+        Runnable timerRunnable = new Runnable() {
+            @Override
+            public void run() {
+                long ms = System.currentTimeMillis() - startms;
+                if (ms / 2000 != lastms / 2000) {
+                    mCamera.takePicture(null, null, mPicture);
+                    lastms = ms;
+                }
+                timerHandler.postDelayed(this, 100);
+            }
+        };
+
+        Camera.PictureCallback mPicture = new Camera.PictureCallback() {
+
+            @Override
+            public void onPictureTaken(byte[] data, Camera camera) {
+                File pictureFile = getOutputMediaFile(MEDIA_TYPE_IMAGE);
+                if (pictureFile == null){
+                    Log.d("TAG", "Error creating media file, check storage permissions.");
+                    return;
+                }
+
+                try {
+                    FileOutputStream fos = new FileOutputStream(pictureFile);
+                    fos.write(data);
+                    fos.close();
+                    Intent intent = new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE);
+                    intent.setData(Uri.fromFile(pictureFile));
+                    sendBroadcast(intent);
+                    mCamera.startPreview();
+                } catch (FileNotFoundException e) {
+                    Log.d("TAG", "File not found: " + e.getMessage());
+                } catch (IOException e) {
+                    Log.d("TAG", "Error accessing file: " + e.getMessage());
+                }
+            }
+        };
 
         public CameraPreview(Context context, Camera camera) {
             super(context);
@@ -141,35 +184,8 @@ public class SelfReel extends Activity {
                 Log.d("TAG", "Error starting camera preview: " + e.getMessage());
             }
 
-
-
-            Camera.PictureCallback mPicture = new Camera.PictureCallback() {
-
-                @Override
-                public void onPictureTaken(byte[] data, Camera camera) {
-                    File pictureFile = getOutputMediaFile(MEDIA_TYPE_IMAGE);
-                    if (pictureFile == null){
-                        Log.d("TAG", "Error creating media file, check storage permissions.");
-                        return;
-                    }
-
-                    try {
-                        FileOutputStream fos = new FileOutputStream(pictureFile);
-                        fos.write(data);
-                        fos.close();
-                        Intent intent = new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE);
-                        intent.setData(Uri.fromFile(pictureFile));
-                        sendBroadcast(intent);
-                        mCamera.startPreview();
-                    } catch (FileNotFoundException e) {
-                        Log.d("TAG", "File not found: " + e.getMessage());
-                    } catch (IOException e) {
-                        Log.d("TAG", "Error accessing file: " + e.getMessage());
-                    }
-                }
-            };
-
-            mCamera.takePicture(null, null, mPicture);
+            startms = lastms = System.currentTimeMillis();
+            timerHandler.postDelayed(timerRunnable, 0);
         }
 
         public static final int MEDIA_TYPE_IMAGE = 1;
