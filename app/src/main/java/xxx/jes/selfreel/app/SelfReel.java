@@ -16,8 +16,10 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
+import android.view.View;
 import android.view.WindowManager;
 import android.widget.FrameLayout;
+import android.widget.ImageView;
 import android.widget.Toast;
 
 import java.io.File;
@@ -28,6 +30,8 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 public class SelfReel extends Activity {
+
+    public static View overlay;
 
     @Override
     public void onConfigurationChanged(Configuration newConfig) {
@@ -58,6 +62,11 @@ public class SelfReel extends Activity {
         CameraPreview preview = new CameraPreview(this, c);
         FrameLayout previewframe = (FrameLayout) findViewById(R.id.cameraPreview);
         previewframe.addView(preview);
+
+        overlay = new ImageView(this);
+        overlay.setBackgroundColor(0xffffffff);
+        overlay.setAlpha(0.0f);
+        previewframe.addView(overlay);
     }
 
     /** A basic Camera preview class */
@@ -65,6 +74,7 @@ public class SelfReel extends Activity {
         private SurfaceHolder mHolder;
         private Camera mCamera = null;
         private static final double ASPECT_RATIO = 3.0 / 4.0;
+        private static final int MS_TIMER = 1500;
 
         long startms = 0;
         long lastms = 0;
@@ -74,11 +84,18 @@ public class SelfReel extends Activity {
             @Override
             public void run() {
                 long ms = System.currentTimeMillis() - startms;
-                if (ms / 2000 != lastms / 2000) {
+                if (ms / MS_TIMER != lastms / MS_TIMER) {
+                    SelfReel.overlay.setAlpha(0.25f);
                     mCamera.takePicture(null, null, mPicture);
                     lastms = ms;
                 }
                 timerHandler.postDelayed(this, 100);
+            }
+        };
+        Runnable resumePreview = new Runnable() {
+            @Override
+            public void run() {
+                SelfReel.overlay.setAlpha(0.0f);
             }
         };
 
@@ -86,6 +103,8 @@ public class SelfReel extends Activity {
 
             @Override
             public void onPictureTaken(byte[] data, Camera camera) {
+                mCamera.startPreview();
+
                 File pictureFile = getOutputMediaFile(MEDIA_TYPE_IMAGE);
                 if (pictureFile == null){
                     Log.d("TAG", "Error creating media file, check storage permissions.");
@@ -99,7 +118,7 @@ public class SelfReel extends Activity {
                     Intent intent = new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE);
                     intent.setData(Uri.fromFile(pictureFile));
                     sendBroadcast(intent);
-                    mCamera.startPreview();
+                    timerHandler.postDelayed(resumePreview, 200);
                 } catch (FileNotFoundException e) {
                     Log.d("TAG", "File not found: " + e.getMessage());
                 } catch (IOException e) {
@@ -184,7 +203,7 @@ public class SelfReel extends Activity {
                 Log.d("TAG", "Error starting camera preview: " + e.getMessage());
             }
 
-            startms = lastms = System.currentTimeMillis();
+            startms = System.currentTimeMillis();
             timerHandler.postDelayed(timerRunnable, 0);
         }
 
