@@ -74,7 +74,7 @@ public class SelfReel extends Activity {
         private SurfaceHolder mHolder;
         private Camera mCamera = null;
         private static final double ASPECT_RATIO = 3.0 / 4.0;
-        private static final int MS_TIMER = 1500;
+        private static final int MS_TIMER = 3000;
 
         long startms = 0;
         long lastms = 0;
