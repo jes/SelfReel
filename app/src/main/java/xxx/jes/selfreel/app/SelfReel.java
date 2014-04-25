@@ -84,14 +84,17 @@ public class SelfReel extends Activity {
         RelativeLayout rl = new RelativeLayout(this);
         previewframe.addView(rl);
 
+        LinearLayout ll = new LinearLayout(this);
+        ll.setOrientation(LinearLayout.HORIZONTAL);
+        rl.addView(ll);
+        RelativeLayout.LayoutParams params = (RelativeLayout.LayoutParams)ll.getLayoutParams();
+        params.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM);
+        ll.setLayoutParams(params);
+
         Button btn = new Button(this);
         btn.setText("Pause");
-        rl.addView(btn);
-        RelativeLayout.LayoutParams params = (RelativeLayout.LayoutParams)btn.getLayoutParams();
-        params.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM);
-        btn.setLayoutParams(params);
+        ll.addView(btn);
         btn.setWidth(200);
-
         btn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -109,14 +112,24 @@ public class SelfReel extends Activity {
             }
         });
 
+        btn = new Button(this);
+        btn.setText("Done");
+        ll.addView(btn);
+        btn.setWidth(200);
+        final SelfReel selfreel = this;
+        btn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                recording = false;
+                Intent intent = new Intent(selfreel, KeepSelfiesActivity.class);
+                startActivity(intent);
+            }
+        });
+
         textView = new TextView(this);
         textView.setText("0");
         textView.setTextSize(50f);
-        rl.addView(textView);
-        params = (RelativeLayout.LayoutParams)textView.getLayoutParams();
-        params.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM);
-        params.addRule(RelativeLayout.ALIGN_PARENT_RIGHT);
-        textView.setLayoutParams(params);
+        ll.addView(textView);
     }
 
     /** A basic Camera preview class */
