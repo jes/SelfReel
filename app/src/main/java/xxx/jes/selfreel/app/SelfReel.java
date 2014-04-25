@@ -17,9 +17,14 @@ import android.view.MenuItem;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.WindowManager;
+import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.File;
@@ -31,7 +36,15 @@ import java.util.Date;
 
 public class SelfReel extends Activity {
 
+    public boolean recording = true;
     public static View overlay;
+
+    public long startms = 0;
+    public long lastms = 0;
+    public long INITIAL_TIME = 1000;
+    public long MS_TIMER = 2500;
+
+    public TextView textView;
 
     @Override
     public void onConfigurationChanged(Configuration newConfig) {
@@ -67,6 +80,43 @@ public class SelfReel extends Activity {
         overlay.setBackgroundColor(0xffffffff);
         overlay.setAlpha(0.0f);
         previewframe.addView(overlay);
+
+        RelativeLayout rl = new RelativeLayout(this);
+        previewframe.addView(rl);
+
+        Button btn = new Button(this);
+        btn.setText("Pause");
+        rl.addView(btn);
+        RelativeLayout.LayoutParams params = (RelativeLayout.LayoutParams)btn.getLayoutParams();
+        params.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM);
+        btn.setLayoutParams(params);
+        btn.setWidth(200);
+
+        btn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Button btn = (Button)v;
+
+                if (recording) {
+                    recording = false;
+                    btn.setText("Resume");
+                } else {
+                    recording = true;
+                    btn.setText("Pause");
+                    startms = System.currentTimeMillis() - (MS_TIMER - INITIAL_TIME);
+                    lastms = -1000;
+                }
+            }
+        });
+
+        textView = new TextView(this);
+        textView.setText("0");
+        textView.setTextSize(50f);
+        rl.addView(textView);
+        params = (RelativeLayout.LayoutParams)textView.getLayoutParams();
+        params.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM);
+        params.addRule(RelativeLayout.ALIGN_PARENT_RIGHT);
+        textView.setLayoutParams(params);
     }
 
     /** A basic Camera preview class */
@@ -74,21 +124,23 @@ public class SelfReel extends Activity {
         private SurfaceHolder mHolder;
         private Camera mCamera = null;
         private static final double ASPECT_RATIO = 3.0 / 4.0;
-        private static final int MS_TIMER = 3000;
-
-        long startms = 0;
-        long lastms = 0;
 
         Handler timerHandler = new Handler();
         Runnable timerRunnable = new Runnable() {
             @Override
             public void run() {
                 long ms = System.currentTimeMillis() - startms;
-                if (ms / MS_TIMER != lastms / MS_TIMER) {
+                if (recording && ms / MS_TIMER != lastms / MS_TIMER) {
                     SelfReel.overlay.setAlpha(0.25f);
                     mCamera.takePicture(null, null, mPicture);
                     lastms = ms;
                 }
+                long secs = MS_TIMER - (ms % MS_TIMER);
+                secs /= 100;
+                if (recording)
+                    textView.setText("" + secs);
+                else
+                    textView.setText("0");
                 timerHandler.postDelayed(this, 100);
             }
         };
@@ -203,7 +255,7 @@ public class SelfReel extends Activity {
                 Log.d("TAG", "Error starting camera preview: " + e.getMessage());
             }
 
-            startms = System.currentTimeMillis();
+            startms = System.currentTimeMillis() - (MS_TIMER - INITIAL_TIME);
             timerHandler.postDelayed(timerRunnable, 0);
         }
 
