@@ -32,6 +32,7 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 
 public class SelfReel extends Activity {
@@ -43,6 +44,8 @@ public class SelfReel extends Activity {
     public long lastms = 0;
     public long INITIAL_TIME = 1000;
     public long MS_TIMER = 2500;
+
+    public ArrayList<String> filenames = new ArrayList<String>();
 
     public TextView textView;
 
@@ -117,11 +120,14 @@ public class SelfReel extends Activity {
         ll.addView(btn);
         btn.setWidth(200);
         final SelfReel selfreel = this;
+        final Button pauseButton = btn;
         btn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 recording = false;
+                pauseButton.setText("Resume");
                 Intent intent = new Intent(selfreel, KeepSelfiesActivity.class);
+                intent.putExtra("filenames", filenames);
                 startActivity(intent);
             }
         });
@@ -170,7 +176,8 @@ public class SelfReel extends Activity {
             public void onPictureTaken(byte[] data, Camera camera) {
                 mCamera.startPreview();
 
-                File pictureFile = getOutputMediaFile(MEDIA_TYPE_IMAGE);
+                String pictureFileName = getOutputMediaFileName(MEDIA_TYPE_IMAGE);
+                File pictureFile = new File(pictureFileName);
                 if (pictureFile == null){
                     Log.d("TAG", "Error creating media file, check storage permissions.");
                     return;
@@ -183,6 +190,7 @@ public class SelfReel extends Activity {
                     Intent intent = new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE);
                     intent.setData(Uri.fromFile(pictureFile));
                     sendBroadcast(intent);
+                    filenames.add(pictureFileName);
                     timerHandler.postDelayed(resumePreview, 200);
                 } catch (FileNotFoundException e) {
                     Log.d("TAG", "File not found: " + e.getMessage());
@@ -275,13 +283,8 @@ public class SelfReel extends Activity {
         public static final int MEDIA_TYPE_IMAGE = 1;
         public static final int MEDIA_TYPE_VIDEO = 2;
 
-        /** Create a file Uri for saving an image or video */
-        private Uri getOutputMediaFileUri(int type){
-            return Uri.fromFile(getOutputMediaFile(type));
-        }
-
         /** Create a File for saving an image or video */
-        private File getOutputMediaFile(int type){
+        private String getOutputMediaFileName(int type){
             // To be safe, you should check that the SDCard is mounted
             // using Environment.getExternalStorageState() before doing this.
 
@@ -301,18 +304,18 @@ public class SelfReel extends Activity {
 
             // Create a media file name
             String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
-            File mediaFile;
+            String mediaFileName;
             if (type == MEDIA_TYPE_IMAGE){
-                mediaFile = new File(mediaStorageDir.getPath() + File.separator +
-                        "IMG_"+ timeStamp + ".jpg");
+                mediaFileName = mediaStorageDir.getPath() + File.separator +
+                        "IMG_"+ timeStamp + ".jpg";
             } else if(type == MEDIA_TYPE_VIDEO) {
-                mediaFile = new File(mediaStorageDir.getPath() + File.separator +
-                        "VID_"+ timeStamp + ".mp4");
+                mediaFileName = mediaStorageDir.getPath() + File.separator +
+                        "VID_"+ timeStamp + ".mp4";
             } else {
                 return null;
             }
 
-            return mediaFile;
+            return mediaFileName;
         }
     }
 }
