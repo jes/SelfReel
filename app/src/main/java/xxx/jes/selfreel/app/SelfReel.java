@@ -114,13 +114,13 @@ public class SelfReel extends Activity {
                 }
             }
         });
+        final Button pauseButton = btn;
 
         btn = new Button(this);
         btn.setText("Done");
         ll.addView(btn);
         btn.setWidth(200);
         final SelfReel selfreel = this;
-        final Button pauseButton = btn;
         btn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -282,6 +282,8 @@ public class SelfReel extends Activity {
 
         public static final int MEDIA_TYPE_IMAGE = 1;
         public static final int MEDIA_TYPE_VIDEO = 2;
+        public final String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss_").format(new Date());
+        public int fileidx = 0;
 
         /** Create a File for saving an image or video */
         private String getOutputMediaFileName(int type){
@@ -303,17 +305,18 @@ public class SelfReel extends Activity {
             }
 
             // Create a media file name
-            String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
             String mediaFileName;
             if (type == MEDIA_TYPE_IMAGE){
                 mediaFileName = mediaStorageDir.getPath() + File.separator +
-                        "IMG_"+ timeStamp + ".jpg";
+                        "IMG_"+ timeStamp + fileidx + ".jpg";
             } else if(type == MEDIA_TYPE_VIDEO) {
                 mediaFileName = mediaStorageDir.getPath() + File.separator +
-                        "VID_"+ timeStamp + ".mp4";
+                        "VID_"+ timeStamp + fileidx + ".mp4";
             } else {
                 return null;
             }
+
+            fileidx++;
 
             return mediaFileName;
         }
