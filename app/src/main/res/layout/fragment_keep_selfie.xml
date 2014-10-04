@@ -15,5 +15,6 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id="@+id/textView"
+        android:textSize="25pt"
         android:layout_gravity="center_horizontal|top" />
 </FrameLayout>

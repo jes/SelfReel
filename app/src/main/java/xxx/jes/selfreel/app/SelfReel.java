@@ -132,10 +132,28 @@ public class SelfReel extends Activity {
             }
         });
 
+        deleteOldSelfies();
+
         textView = new TextView(this);
         textView.setText("0");
         textView.setTextSize(50f);
         ll.addView(textView);
+    }
+
+    private void deleteOldSelfies() {
+        File mediaStorageDir = new File(Environment.getExternalStoragePublicDirectory(
+                Environment.DIRECTORY_PICTURES), "SelfReel");
+        if (!mediaStorageDir.exists())
+            return;
+
+        File[] ls = mediaStorageDir.listFiles();
+        if (ls != null) {
+            for (File f : ls) {
+                if (f.getName().endsWith(".not")) {
+                    f.delete();
+                }
+            }
+        }
     }
 
     /** A basic Camera preview class */
@@ -182,6 +200,7 @@ public class SelfReel extends Activity {
                     Log.d("TAG", "Error creating media file, check storage permissions.");
                     return;
                 }
+                pictureFile.deleteOnExit();
 
                 try {
                     FileOutputStream fos = new FileOutputStream(pictureFile);
