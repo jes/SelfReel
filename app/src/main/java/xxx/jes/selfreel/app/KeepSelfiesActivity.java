@@ -72,8 +72,8 @@ public class KeepSelfiesActivity extends Activity {
             case R.id.action_keep:
                 keepSelfie();
                 return true;
-            case R.id.action_share:
-                shareSelfie();
+            case R.id.action_finish:
+                finishKeepingSelfies();
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
@@ -126,6 +126,12 @@ public class KeepSelfiesActivity extends Activity {
         Intent intent = new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE);
         intent.setData(Uri.fromFile(new File(scanname)));
         sendBroadcast(intent);
+    }
+
+    public void finishKeepingSelfies() {
+        SelfReel.deleteOldSelfies();
+        SelfReel.filenames.clear();
+        finish();
     }
 
     /**

@@ -45,7 +45,7 @@ public class SelfReel extends Activity {
     public long INITIAL_TIME = 1000;
     public long MS_TIMER = 2500;
 
-    public ArrayList<String> filenames = new ArrayList<String>();
+    public static ArrayList<String> filenames = new ArrayList<String>();
 
     public TextView textView;
 
@@ -140,7 +140,7 @@ public class SelfReel extends Activity {
         ll.addView(textView);
     }
 
-    private void deleteOldSelfies() {
+    public static void deleteOldSelfies() {
         File mediaStorageDir = new File(Environment.getExternalStoragePublicDirectory(
                 Environment.DIRECTORY_PICTURES), "SelfReel");
         if (!mediaStorageDir.exists())
