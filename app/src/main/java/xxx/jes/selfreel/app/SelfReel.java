@@ -187,9 +187,6 @@ public class SelfReel extends Activity {
                     FileOutputStream fos = new FileOutputStream(pictureFile);
                     fos.write(data);
                     fos.close();
-                    Intent intent = new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE);
-                    intent.setData(Uri.fromFile(pictureFile));
-                    sendBroadcast(intent);
                     filenames.add(pictureFileName);
                     timerHandler.postDelayed(resumePreview, 200);
                 } catch (FileNotFoundException e) {
@@ -308,7 +305,7 @@ public class SelfReel extends Activity {
             String mediaFileName;
             if (type == MEDIA_TYPE_IMAGE){
                 mediaFileName = mediaStorageDir.getPath() + File.separator +
-                        "IMG_"+ timeStamp + fileidx + ".jpg";
+                        "IMG_"+ timeStamp + fileidx + ".jpg.not";
             } else if(type == MEDIA_TYPE_VIDEO) {
                 mediaFileName = mediaStorageDir.getPath() + File.separator +
                         "VID_"+ timeStamp + fileidx + ".mp4";

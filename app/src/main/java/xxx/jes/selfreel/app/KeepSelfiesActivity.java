@@ -22,6 +22,7 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.util.List;
 
 public class KeepSelfiesActivity extends Activity {
@@ -67,6 +68,9 @@ public class KeepSelfiesActivity extends Activity {
     public boolean onOptionsItemSelected(MenuItem item) {
         // Handle presses on the action bar items
         switch (item.getItemId()) {
+            case R.id.action_keep:
+                keepSelfie();
+                return true;
             case R.id.action_share:
                 shareSelfie();
                 return true;
@@ -88,6 +92,33 @@ public class KeepSelfiesActivity extends Activity {
         } catch (Exception e) {
             Log.d("Foo", "Shit happened.");
         }
+    }
+
+    public void keepSelfie() {
+        String oldname = filenames.get(mViewPager.getCurrentItem());
+        String newname;
+        String scanname;
+
+        if (oldname.endsWith(".not")) { // we want to keep this selfie
+            // Strip ".not" from filename
+            newname = oldname.substring(0, oldname.lastIndexOf('.'));
+            scanname = newname;
+        } else { // we want to un-keep this selfie
+            newname = oldname + ".not";
+            scanname = oldname;
+        }
+
+        // Move file
+        File oldfile = new File(oldname);
+        File newfile = new File(newname);
+        oldfile.renameTo(newfile);
+
+        filenames.set(mViewPager.getCurrentItem(), newname);
+
+        // Add it to gallery
+        Intent intent = new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE);
+        intent.setData(Uri.fromFile(new File(scanname)));
+        sendBroadcast(intent);
     }
 
     /**
