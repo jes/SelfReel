@@ -20,6 +20,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.TextView;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -98,14 +99,17 @@ public class KeepSelfiesActivity extends Activity {
         String oldname = filenames.get(mViewPager.getCurrentItem());
         String newname;
         String scanname;
+        String newtext;
 
         if (oldname.endsWith(".not")) { // we want to keep this selfie
             // Strip ".not" from filename
             newname = oldname.substring(0, oldname.lastIndexOf('.'));
             scanname = newname;
+            newtext = "KEEPING";
         } else { // we want to un-keep this selfie
             newname = oldname + ".not";
             scanname = oldname;
+            newtext = "";
         }
 
         // Move file
@@ -114,6 +118,9 @@ public class KeepSelfiesActivity extends Activity {
         oldfile.renameTo(newfile);
 
         filenames.set(mViewPager.getCurrentItem(), newname);
+
+        TextView txt = (TextView)mViewPager.findViewWithTag(mViewPager.getCurrentItem()).findViewById(R.id.textView);
+        txt.setText(newtext);
 
         // Add it to gallery
         Intent intent = new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE);
@@ -137,7 +144,8 @@ public class KeepSelfiesActivity extends Activity {
         public Fragment getItem(int position) {
             // getItem is called to instantiate the fragment for the given page.
             // Return a PlaceholderFragment (defined as a static inner class below).
-            return new SelfieFragment(filenames.get(position));
+            Fragment frag = new SelfieFragment(filenames.get(position), position);
+            return frag;
         }
 
         @Override
@@ -149,10 +157,12 @@ public class KeepSelfiesActivity extends Activity {
     public static class SelfieFragment extends Fragment {
         Drawable drawable;
         String filename;
+        int position;
 
-        public SelfieFragment(String filename) {
+        public SelfieFragment(String filename, int position) {
             this.filename = filename;
             this.drawable = Drawable.createFromPath(filename);
+            this.position = position;
         }
 
         @Override
@@ -161,6 +171,7 @@ public class KeepSelfiesActivity extends Activity {
             View rootView = inflater.inflate(R.layout.fragment_keep_selfie, container, false);
             ImageView img = (ImageView) rootView.findViewById(R.id.imageView);
             img.setImageDrawable(drawable);
+            rootView.setTag(position);
             return rootView;
         }
     }
